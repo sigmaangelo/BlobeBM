@@ -1,31 +1,33 @@
-(function () {
-    var url = "https://blobby-boi.github.io/BlobeBM/main.html";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home - PowerUp</title>
+    <link rel="icon" href="lexialogo.png" type="image/png">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
 
-    // Open a new about:blank window
-    var win = window.open();
+        iframe {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            border: none;
+            z-index: 2147483647;
+            background: white;
+        }
+    </style>
+</head>
+<body>
 
-    // Set the icon for the window
-    win.document.head.innerHTML += '<link rel="icon" href="lexialogo.png" type="image/png">';
+<iframe src="main.html"></iframe>
 
-    // Set the title of the window
-    win.document.head.innerHTML += '<title>Home - PowerUp</title>';
-
-    // Create an iframe
-    var iframe = win.document.createElement('iframe');
-
-    // Set styles for the iframe
-    iframe.style = "position:fixed;width:100vw;height:100vh;top:0px;left:0px;right:0px;bottom:0px;z-index:2147483647;background-color:white;border:none;";
-
-    // Check and assign the URL to the iframe
-    if (url.includes('https://') || url.includes("http://")) {
-        iframe.src = url;
-    } else {
-        iframe.src = "https://" + url;
-    }
-
-    // Append the iframe to the body of the window
-    win.document.body.appendChild(iframe);
-})();
-
-// Redirect to google
-window.location.href = "https://google.com";
+</body>
+</html>
