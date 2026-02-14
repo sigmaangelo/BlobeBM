@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blobe</title>
+    <title>BlobeBM</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
 
@@ -77,7 +77,6 @@
             padding: 10px;
         }
 
-        /* 🔥 NEW: draggable bookmarklet link */
         .bookmarklet-link {
             background-color: #007bff;
             color: white;
@@ -173,25 +172,26 @@
                 const newItem = document.createElement('li');
                 newItem.className = 'item';
 
-                /* 🔥 REPLACED: button → draggable <a> */
                 const itemLink = document.createElement('a');
                 itemLink.className = 'bookmarklet-link';
                 itemLink.textContent = displayValue;
                 itemLink.title = itemValue;
                 itemLink.draggable = true;
 
-                function updateHref(code) {
-                    const cleaned = code.startsWith('javascript:')
-                        ? code.replace(/^javascript:/, '')
-                        : `(function(){${code}})();`;
-                    itemLink.href = `javascript:${cleaned}`;
-                }
+                const cleaned = itemValue.startsWith('javascript:')
+                    ? itemValue.replace(/^javascript:/, '')
+                    : `(function(){${itemValue}})();`;
 
-                updateHref(itemValue);
+                itemLink.href = `javascript:${cleaned}`;
 
                 itemLink.addEventListener('click', (e) => {
                     e.preventDefault();
                     runScript(itemLink.title);
+                });
+
+                // 🔥 REQUIRED FOR CHROME DRAGGING
+                itemLink.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', itemLink.href);
                 });
 
                 const removeButton = document.createElement('button');
@@ -220,7 +220,10 @@
                     const newItemValue = prompt('Enter the new bookmarklet code:', itemLink.title);
                     if (newItemValue !== null) {
                         itemLink.title = newItemValue;
-                        updateHref(newItemValue);
+                        const updated = newItemValue.startsWith('javascript:')
+                            ? newItemValue.replace(/^javascript:/, '')
+                            : `(function(){${newItemValue}})();`;
+                        itemLink.href = `javascript:${updated}`;
                         saveItemsToLocalStorage();
                     }
                 });
@@ -243,11 +246,10 @@
 
             function runScript(code) {
                 overlay.style.display = 'flex';
-
                 setTimeout(() => {
                     try {
                         eval(code);
-                    } catch (error) {
+                    } catch (e) {
                         alert('An error occured while executing the bookmarklet.');
                     }
                     overlay.style.display = 'none';
