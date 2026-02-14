@@ -1,46 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Home - PowerUp</title>
-
-    <!-- Favicon -->
-    <link rel="icon" href="lexialogo.png" type="image/png">
-
-    <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: white;
-        }
-    </style>
-</head>
-<body>
-
-<script>
 (function () {
-    var url = "/main.html";
+    var url = "https://blobebm.wasmer.app/main.html";
 
-    // Create iframe
-    var iframe = document.createElement('iframe');
+    // Open a new about:blank window
+    var win = window.open();
 
-    // Same styles you had before
-    iframe.style = "position:fixed;width:100vw;height:100vh;top:0;left:0;right:0;bottom:0;z-index:2147483647;background-color:white;border:none;";
+    // Set the icon for the window
+    win.document.head.innerHTML += '<link rel="icon" href="lexialogo.png" type="image/png">';
 
-    // Assign URL safely
-    if (url.includes('https://') || url.includes('http://')) {
+    // Set the title of the window
+    win.document.head.innerHTML += '<title>Home - PowerUp</title>';
+
+    // Create an iframe
+    var iframe = win.document.createElement('iframe');
+
+    // Set styles for the iframe
+    iframe.style = "position:fixed;width:100vw;height:100vh;top:0px;left:0px;right:0px;bottom:0px;z-index:2147483647;background-color:white;border:none;";
+
+    // Check and assign the URL to the iframe
+    if (url.includes('https://') || url.includes("http://")) {
         iframe.src = url;
     } else {
         iframe.src = "https://" + url;
     }
 
-    // Add iframe to current page
-    document.body.appendChild(iframe);
+    // Append the iframe to the body of the window
+    win.document.body.appendChild(iframe);
 })();
-</script>
 
-</body>
-</html>
+// Redirect to google
+window.location.href = "https://google.com";
