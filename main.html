@@ -45,19 +45,19 @@
             align-items: center;
         }
 
-	#newItemInput {
-   	    width: calc(100% + 590px);
-  	    padding: 5px;
-	    border-radius: 5px;
-	    margin-left: -600px;
-	}
+        #newItemInput {
+            width: calc(100% + 590px);
+            padding: 5px;
+            border-radius: 5px;
+            margin-left: -600px;
+        }
 
-	@media (max-width: 769px) {
-    		#newItemInput {
-        		width: auto;
-        		margin-left: 0;
-    			}
-		}
+        @media (max-width: 769px) {
+            #newItemInput {
+                width: auto;
+                margin-left: 0;
+            }
+        }
 
         .item-list-container {
             max-height: calc(100vh - 75px);
@@ -77,12 +77,19 @@
             padding: 10px;
         }
 
-        .item-button {
+        /* 🔥 NEW: draggable bookmarklet link */
+        .bookmarklet-link {
             background-color: #007bff;
             color: white;
             padding: 5px 10px;
-            border: none;
-            cursor: pointer;
+            border-radius: 4px;
+            text-decoration: none;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .bookmarklet-link:active {
+            cursor: grabbing;
         }
 
         .remove-button {
@@ -145,7 +152,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            let updatedItemText;
             const itemList = document.getElementById('itemList');
             const newItemInput = document.getElementById('newItemInput');
             const addButton = document.getElementById('addItemButton');
@@ -153,14 +159,10 @@
 
             addButton.addEventListener('click', () => {
                 const displayValue = prompt('How do you want the bookmarklet to be called?');
-                if (displayValue === null) {
-                    return;
-                }
+                if (displayValue === null) return;
 
                 const itemValue = newItemInput.value.trim();
-                if (!itemValue) {
-                    return;
-                }
+                if (!itemValue) return;
 
                 addItemToList(displayValue, itemValue);
                 saveItemsToLocalStorage();
@@ -171,13 +173,25 @@
                 const newItem = document.createElement('li');
                 newItem.className = 'item';
 
-                const itemButton = document.createElement('button');
-                itemButton.className = 'item-button';
-                itemButton.textContent = displayValue;
-                itemButton.title = itemValue;
-                itemButton.addEventListener('click', () => {
-                    const selectedItemValue = itemButton.title;
-                    runScript(selectedItemValue);
+                /* 🔥 REPLACED: button → draggable <a> */
+                const itemLink = document.createElement('a');
+                itemLink.className = 'bookmarklet-link';
+                itemLink.textContent = displayValue;
+                itemLink.title = itemValue;
+                itemLink.draggable = true;
+
+                function updateHref(code) {
+                    const cleaned = code.startsWith('javascript:')
+                        ? code.replace(/^javascript:/, '')
+                        : `(function(){${code}})();`;
+                    itemLink.href = `javascript:${cleaned}`;
+                }
+
+                updateHref(itemValue);
+
+                itemLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    runScript(itemLink.title);
                 });
 
                 const removeButton = document.createElement('button');
@@ -192,9 +206,9 @@
                 editDisplayButton.className = 'edit-display-button';
                 editDisplayButton.textContent = 'Edit Name';
                 editDisplayButton.addEventListener('click', () => {
-                    const newDisplayValue = prompt('Enter the new name:', itemButton.textContent);
+                    const newDisplayValue = prompt('Enter the new name:', itemLink.textContent);
                     if (newDisplayValue !== null) {
-                        itemButton.textContent = newDisplayValue;
+                        itemLink.textContent = newDisplayValue;
                         saveItemsToLocalStorage();
                     }
                 });
@@ -203,14 +217,15 @@
                 editItemButton.className = 'edit-item-button';
                 editItemButton.textContent = 'Edit Bookmarklet';
                 editItemButton.addEventListener('click', () => {
-                    const newItemValue = prompt('Enter the new bookmarklet code:', itemButton.title);
+                    const newItemValue = prompt('Enter the new bookmarklet code:', itemLink.title);
                     if (newItemValue !== null) {
-                        itemButton.title = newItemValue;
+                        itemLink.title = newItemValue;
+                        updateHref(newItemValue);
                         saveItemsToLocalStorage();
                     }
                 });
 
-                newItem.appendChild(itemButton);
+                newItem.appendChild(itemLink);
                 newItem.appendChild(removeButton);
                 newItem.appendChild(editDisplayButton);
                 newItem.appendChild(editItemButton);
@@ -219,38 +234,29 @@
             }
 
             function saveItemsToLocalStorage() {
-                const items = Array.from(document.querySelectorAll('.item-button')).map(button => {
-                    return {
-                        display: button.textContent,
-                        item: button.title,
-                    };
-                });
+                const items = Array.from(document.querySelectorAll('.bookmarklet-link')).map(link => ({
+                    display: link.textContent,
+                    item: link.title
+                }));
                 localStorage.setItem('items', JSON.stringify(items));
             }
 
-            function runScript(selectedItemValue) {
+            function runScript(code) {
                 overlay.style.display = 'flex';
-
-                function removeOverlay() {
-                    overlay.style.display = 'none';
-                }
 
                 setTimeout(() => {
                     try {
-                        eval(selectedItemValue);
+                        eval(code);
                     } catch (error) {
-                        console.error('Error executing script:', error);
-                        alert('An error occured while executing the bookmarklet. Try double checking the code of the bookmarklet.');
+                        alert('An error occured while executing the bookmarklet.');
                     }
-
-                    removeOverlay();
+                    overlay.style.display = 'none';
                 }, 500);
             }
 
             const storedItems = localStorage.getItem('items');
             if (storedItems) {
-                const parsedItems = JSON.parse(storedItems);
-                parsedItems.forEach(item => {
+                JSON.parse(storedItems).forEach(item => {
                     addItemToList(item.display, item.item);
                 });
             }
